@@ -19,7 +19,7 @@ const MapVariable = (props) => {
 
   return (
     <div className="node-table-body node-variable-builder-body">
-      <LabeledInput renderFieldLabel={() => renderFieldLabel("Id")}
+      <LabeledInput renderFieldLabel={() => renderFieldLabel("Name")}
                     value={node.id}
                     onChange={(event) => onInputChange("id", event)}
                     isMarked={isMarked("id")}
@@ -43,7 +43,8 @@ const MapVariable = (props) => {
            addField={addField}
            isMarked={isMarked}
            readOnly={readOnly}
-           showValidation={showValidation}/>
+           showValidation={showValidation}
+           showSwitch={false}/>
 
       <LabeledTextarea renderFieldLabel={() => renderFieldLabel("Description")}
                        value={_.get(props.node, "additionalFields.description", "")}
@@ -62,7 +63,8 @@ MapVariable.propTypes = {
   addElement: PropTypes.func.isRequired,
   onChange: PropTypes.func.isRequired,
   readOnly: PropTypes.bool,
-  showValidation: PropTypes.bool.isRequired
+  showValidation: PropTypes.bool.isRequired,
+  showSwitch: PropTypes.bool
 }
 
 MapVariable.defaultProps = {
