@@ -10,6 +10,7 @@ import pl.touk.nussknacker.engine.api.dict.DictRegistry
 import pl.touk.nussknacker.engine.api.expression.{Expression, ExpressionParser, TypedExpression, TypedExpressionMap}
 import pl.touk.nussknacker.engine.api.typed.typing.{TypingResult, Unknown}
 import pl.touk.nussknacker.engine.compiledgraph.evaluatedparam.TypedParameter
+import pl.touk.nussknacker.engine.compositeexpression.CompositeExpressionParser
 import pl.touk.nussknacker.engine.definition.DefinitionExtractor.ObjectMetadata
 import pl.touk.nussknacker.engine.definition.ProcessDefinitionExtractor.ExpressionDefinition
 import pl.touk.nussknacker.engine.graph.{evaluatedparam, expression}
@@ -28,12 +29,13 @@ object ExpressionCompiler {
       = default(loader, dictRegistry, expressionConfig, optimizeCompilation = false)
 
   private def default(loader: ClassLoader, dictRegistry: DictRegistry, expressionConfig: ExpressionDefinition[ObjectMetadata], optimizeCompilation: Boolean): ExpressionCompiler = {
-    val defaultParsers = Seq(
+    val defaultParsers = List(
       SpelExpressionParser.default(loader, dictRegistry, optimizeCompilation, expressionConfig.strictTypeChecking, expressionConfig.globalImports, SpelExpressionParser.Standard),
       SpelExpressionParser.default(loader, dictRegistry, optimizeCompilation, expressionConfig.strictTypeChecking, expressionConfig.globalImports, SpelExpressionParser.Template),
       SqlExpressionParser)
     val parsersSeq = defaultParsers  ++ expressionConfig.languages.expressionParsers
-    val parsers = parsersSeq.map(p => p.languageId -> p).toMap
+    val composite = new CompositeExpressionParser(parsersSeq)
+    val parsers = (composite::parsersSeq).map(p => p.languageId -> p).toMap
     new ExpressionCompiler(parsers)
   }
 
