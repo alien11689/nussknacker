@@ -148,16 +148,16 @@ class FlinkStreamingProcessManagerSpec extends FunSuite with Matchers with Strea
     val processId = "redeployFail"
     val outTopic = s"output-$processId"
 
-    val process = StatefulSampleProcess.prepareProcessStringWithStringState(processId)
+    val process = StatefulSampleProcess.processWithMapAggegator(processId, "#AGG.set")
 
     kafkaClient.createTopic(outTopic, 1)
 
     deployProcessAndWaitIfRunning(process, empty(process.id))
-    messagesFromTopic(outTopic,1) shouldBe List("")
+    messagesFromTopic(outTopic,1) shouldBe List("test")
 
     logger.info("Starting to redeploy")
 
-    val newMarshalled = ProcessMarshaller.toJson(ProcessCanonizer.canonize(StatefulSampleProcess.prepareProcessWithLongState(processId))).spaces2
+    val newMarshalled = ProcessMarshaller.toJson(ProcessCanonizer.canonize(StatefulSampleProcess.processWithMapAggegator(processId, "#AGG.approxCardinality"))).spaces2
     val exception = processManager.deploy(empty(process.id), GraphProcess(newMarshalled), None).failed.futureValue
 
     exception.getMessage shouldBe "State is incompatible, please stop process and start again with clean state"
