@@ -1,20 +1,20 @@
-import React from "react";
-import Modal from "react-modal";
-import {connect} from "react-redux";
-import ActionsUtils from "../../actions/ActionsUtils";
-import "../../stylesheets/visualization.styl";
-import LaddaButton from "react-ladda"
 import "ladda/dist/ladda.min.css"
-import PropTypes from "prop-types";
-import Draggable from "react-draggable";
+import PropTypes from "prop-types"
+import React from "react"
+import Draggable from "react-draggable"
+import LaddaButton from "react-ladda"
+import Modal from "react-modal"
+import {connect} from "react-redux"
+import ActionsUtils from "../../actions/ActionsUtils"
+import "../../stylesheets/visualization.styl"
 
 class GenericModalDialog extends React.Component {
 
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
-      pendingRequest: false
-    };
+      pendingRequest: false,
+    }
   }
 
   closeDialog = () => {
@@ -56,9 +56,9 @@ class GenericModalDialog extends React.Component {
              shouldCloseOnOverlayClick={false}
              onRequestClose={this.closeDialog}>
         <div className="draggable-container">
-          <Draggable bounds="parent" cancel={preventFromMoveSelectors}>
+          <Draggable bounds="parent" handle=".modal-draggable-handle">
             <div className={style}>
-              {this.props.header ? (<div className="modal-title" style={{color: "white", backgroundColor: "#70c6ce"}}>
+              {this.props.header ? (<div className="modal-title modal-draggable-handle" style={{color: "white", backgroundColor: "#70c6ce"}}>
                 <span>{this.props.header}</span>
               </div>) : null}
               <div className="modalContentDark">
@@ -73,12 +73,12 @@ class GenericModalDialog extends React.Component {
           </Draggable>
         </div>
       </Modal>
-    );
+    )
   }
 }
 
 GenericModalDialog.propTypes = {
-  okBtnConfig: PropTypes.object
+  okBtnConfig: PropTypes.object,
 }
 
 function mapState(state) {
@@ -87,7 +87,5 @@ function mapState(state) {
   }
 }
 
-export const preventFromMoveSelectors = "input, textarea, #brace-editor, .datePickerContainer, svg, img, .node-value-select, #ace-editor, .row-ace-editor"
-
-export default connect(mapState, ActionsUtils.mapDispatchWithEspActions)(GenericModalDialog);
+export default connect(mapState, ActionsUtils.mapDispatchWithEspActions)(GenericModalDialog)
 

@@ -1,5 +1,5 @@
-import React from "react"
 import PropTypes from "prop-types"
+import React from "react"
 import Input from "./Input"
 
 export const LabeledInput = (props) => {
@@ -25,12 +25,15 @@ LabeledInput.propTypes = {
   renderFieldLabel: PropTypes.func.isRequired,
   isMarked: PropTypes.bool,
   readOnly: PropTypes.bool,
-  value: PropTypes.string || PropTypes.number,
+  value: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+  ]),
   autofocus: PropTypes.bool,
   showValidation: PropTypes.bool,
   validators: PropTypes.array,
   onChange: PropTypes.func,
-  placeholder: PropTypes.string
+  placeholder: PropTypes.string,
 }
 
 export default LabeledInput

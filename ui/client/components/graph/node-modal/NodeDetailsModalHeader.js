@@ -1,10 +1,10 @@
-import React from "react"
-import PropTypes from "prop-types"
 import _ from "lodash"
-import EspModalStyles from "../../../common/EspModalStyles"
-import NodeUtils from "../NodeUtils"
+import PropTypes from "prop-types"
+import React from "react"
 import nodeAttributes from "../../../assets/json/nodeAttributes"
+import EspModalStyles from "../../../common/EspModalStyles"
 import SvgDiv from "../../SvgDiv"
+import NodeUtils from "../NodeUtils"
 
 const HeaderType = {
   SUBTYPE_DOCS: 1,
@@ -86,9 +86,11 @@ const NodeDetailsModalHeader = (props) => {
 
   return (
     <div className="modalHeader">
-      <div className="modal-title" style={titleStyles}>
-        {nodeIcon ? <SvgDiv className="modal-title-icon" svgFile={nodeIcon}/> : null}
-        <span>{header}</span>
+      <div className="modal-title-container modal-draggable-handle">
+        <div className="modal-title" style={titleStyles}>
+          {nodeIcon ? <SvgDiv className="modal-title-icon" svgFile={nodeIcon}/> : null}
+          <span>{header}</span>
+        </div>
       </div>
       {renderNodeClassDocs(nodeClass, docsUrl)}
     </div>

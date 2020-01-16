@@ -1,19 +1,16 @@
+import PropTypes from "prop-types"
 import React from "react"
 import ExpressionSuggest from "./ExpressionSuggest"
-import PropTypes from "prop-types"
-import SwitchIcon from "./SwitchIcon"
 
 export default function RawEditor(props) {
 
   const {
-    renderFieldLabel, fieldLabel, fieldName, expressionObj, validators, isMarked, showValidation, readOnly,
-    onValueChange, rows, cols, switchable, toggleEditor, shouldShowSwitch, rowClassName, valueClassName, displayRawEditor
+    fieldName, expressionObj, validators, isMarked, showValidation, readOnly,
+    onValueChange, rows, cols, className,
   } = props
 
   return (
-    <div className={rowClassName}>
-      {fieldLabel && renderFieldLabel(fieldLabel)}
-      <div className={(shouldShowSwitch ? " switchable " : "") + valueClassName}>
+      <div className={className}>
         <ExpressionSuggest
           fieldName={fieldName}
           inputProps={{
@@ -23,29 +20,17 @@ export default function RawEditor(props) {
             value: expressionObj.expression,
             language: expressionObj.language,
             onValueChange: onValueChange,
-            readOnly: readOnly
+            readOnly: readOnly,
           }}
           validators={validators}
           isMarked={isMarked}
           showValidation={showValidation}
-          shouldShowSwitch={shouldShowSwitch}
         />
       </div>
-      <SwitchIcon
-        switchable={switchable}
-        onClick={toggleEditor}
-        shouldShowSwitch={shouldShowSwitch}
-        displayRawEditor={displayRawEditor}
-        readOnly={readOnly}
-      />
-    </div>
   )
 }
 
 RawEditor.propTypes = {
-  fieldLabel: PropTypes.string,
-  renderFieldLabel: PropTypes.func,
-  valueClassName: PropTypes.string,
   fieldName: PropTypes.string,
   rows: PropTypes.number,
   cols: PropTypes.number,
@@ -55,12 +40,15 @@ RawEditor.propTypes = {
   validators: PropTypes.array,
   isMarked: PropTypes.bool,
   showValidation: PropTypes.bool,
-  switchable: PropTypes.bool,
-  toggleEditor: PropTypes.func,
-  shouldShowSwitch: PropTypes.bool
 }
 
 RawEditor.defaultProps = {
   rows: 1,
-  cols: 50
+  cols: 50,
 }
+
+RawEditor.supportedFieldTypes = ["String", "Boolean", "expression"]
+
+RawEditor.switchableTo = (_) => true
+
+RawEditor.switchableToHint = "Switch to expression mode"

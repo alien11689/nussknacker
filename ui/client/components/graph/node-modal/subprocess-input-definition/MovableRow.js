@@ -1,16 +1,17 @@
 import React from "react"
 import {DragSource, DropTarget} from "react-dnd"
 import ReactDOM from "react-dom"
+import Select from "react-select"
 import {allValid} from "../../../../common/Validators"
 import ValidationLabels from "../../../modals/ValidationLabels"
-import Select from "react-select"
+import SvgDiv from "../../../SvgDiv"
 
 class RowSelect extends React.Component {
   render() {
     const {
       changeName, changeValue, connectDragSource, connectDropTarget,
       field, index, isDragging, isMarked, options, toogleCloseOnEsc,
-      showValidation, readOnly, remove, value, validators
+      showValidation, readOnly, remove, value, validators,
     } = this.props
 
     const markedClass = isMarked(index) ? " marked" : ""
@@ -18,7 +19,10 @@ class RowSelect extends React.Component {
 
     return connectDropTarget(connectDragSource(
       <div className="node-row movable-row" style={{opacity}}>
-        <div className={`node-value fieldName${  markedClass}`}>
+        <div className={`node-value fieldName${markedClass}`}
+          //to prevent dragging on specified elements, see https://stackoverflow.com/a/51911875
+             draggable={true}
+             onDragStart={this.preventDrag}>
           <input
             className={!showValidation || allValid(validators, [field.name]) ? "node-input" : "node-input node-input-with-error"}
             type="text"
@@ -29,7 +33,9 @@ class RowSelect extends React.Component {
           />
           {showValidation && <ValidationLabels validators={validators} values={[field.name]}/>}
         </div>
-        <div className={`node-value field${  markedClass}`}>
+        <div className={`node-value field${markedClass}`}
+             draggable={true}
+             onDragStart={this.preventDrag}>
           <Select
             className="node-value node-value-select node-value-type-select"
             classNamePrefix="node-value-select"
@@ -44,12 +50,23 @@ class RowSelect extends React.Component {
         </div>
         {
           readOnly ? null :
-            <div className="node-value fieldRemove">
-              <button className="addRemoveButton" title="Remove field" onClick={() => {remove()}}>-</button>
+            <div className="node-value fieldRemove"
+                 draggable={true}
+                 onDragStart={this.preventDrag}>
+              <button className="addRemoveButton" title="Remove field" onClick={() => {
+                remove()
+              }}>-
+              </button>
             </div>
         }
-      </div>
+        <SvgDiv svgFile={"handlebars.svg"} className={"handle-bars"}/>
+      </div>,
     ))
+  }
+
+  preventDrag = (event) => {
+    event.preventDefault()
+    event.stopPropagation()
   }
 }
 
@@ -96,18 +113,18 @@ const MovableRow =
         monitor.getItem().index = hoverIndex
       },
     }, (connect) => ({
-      connectDropTarget: connect.dropTarget()
+      connectDropTarget: connect.dropTarget(),
     }),
   )(
   new DragSource(
     "field", {
     beginDrag: (props) => ({
-      index: props.index
-    })
+      index: props.index,
+    }),
   }, (connect, monitor) => ({
     connectDragSource: connect.dragSource(),
     isDragging: monitor.isDragging(),
-  }))(RowSelect)
+  }))(RowSelect),
 )
 
 export default MovableRow

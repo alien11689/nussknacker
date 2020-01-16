@@ -19,7 +19,6 @@ import ValidationLabels from "../../../../modals/ValidationLabels"
 import HttpService from "../../../../../http/HttpService"
 import {allValid} from "../../../../../common/Validators"
 
-
 //to reconsider
 // - respect categories for global variables?
 // - maybe ESC should be allowed to hide suggestions but leave modal open?
@@ -36,9 +35,8 @@ class ExpressionSuggest extends React.Component {
     fieldName: PropTypes.string,
     validators: PropTypes.array,
     showValidation: PropTypes.bool,
-    processingType: PropTypes.string
+    processingType: PropTypes.string,
   }
-
 
   customAceEditorCompleter = {
     getCompletions: (editor, session, caretPosition2d, prefix, callback) => {
@@ -59,7 +57,7 @@ class ExpressionSuggest extends React.Component {
               meta: returnType,
               description: s.description,
               parameters: s.parameters,
-              returnType: returnType
+              returnType: returnType,
             }
           }))
         } finally {
@@ -71,7 +69,7 @@ class ExpressionSuggest extends React.Component {
     identifierRegexps: identifierRegexpsIncludingDot,
     getDocTooltip: (item) => {
       if (item.description || !_.isEmpty(item.parameters)) {
-        const paramsSignature = item.parameters.map(p => `${ProcessUtils.humanReadableType(p.refClazz)  } ${  p.name}`).join(", ")
+        const paramsSignature = item.parameters.map(p => `${ProcessUtils.humanReadableType(p.refClazz)} ${p.name}`).join(", ")
         const javaStyleSignature = `${item.returnType} ${item.name}(${paramsSignature})`
         item.docHTML = ReactDOMServer.renderToStaticMarkup((
           <div className="function-docs">
@@ -81,16 +79,16 @@ class ExpressionSuggest extends React.Component {
           </div>
         ))
       }
-    }
+    },
   }
 
   constructor(props) {
-    super(props);
-    inputExprIdCounter+=1;
+    super(props)
+    inputExprIdCounter += 1
     this.state = {
       value: props.inputProps.value,
-      id: `inputExpr${  inputExprIdCounter}`
-    };
+      id: `inputExpr${inputExprIdCounter}`,
+    }
     this.expressionSuggester = this.createExpressionSuggester(props)
   }
 
@@ -110,25 +108,25 @@ class ExpressionSuggest extends React.Component {
   }
 
   createExpressionSuggester = (props) => {
-    return new ExpressionSuggester(props.typesInformation, props.variables, props.processingType, HttpService);
+    return new ExpressionSuggester(props.typesInformation, props.variables, props.processingType, HttpService)
   }
 
   onChange = (newValue) => {
     this.setState({
-      value: newValue
+      value: newValue,
     })
   }
 
   render() {
     if (this.props.dataResolved) {
-      const {isMarked, showValidation, inputProps, validators, shouldShowSwitch} = this.props
+      const {isMarked, showValidation, inputProps, validators} = this.props
       return (
         <React.Fragment>
-          <div className={`row-ace-editor${ 
-          !showValidation || allValid(validators, [this.state.value]) ? "" : " node-input-with-error " 
-          }${isMarked ? " marked" : "" 
-          }${shouldShowSwitch ? " switchable" : "" 
-          }${this.state.editorFocused ? " focused" : ""}`}>
+          <div className={`row-ace-editor${
+            !showValidation || allValid(validators, [this.state.value]) ? "" : " node-input-with-error "
+          }${isMarked ? " marked" : ""
+          }${this.state.editorFocused ? " focused" : ""
+          }${inputProps.readOnly ? " read-only" : ""}`}>
             <AceEditor mode={inputProps.language}
                        width={"100%"}
                        minLines={1}
@@ -143,8 +141,9 @@ class ExpressionSuggest extends React.Component {
                        highlightGutterLine={false}
                        wrapEnabled={true}
                        editorProps={{
-                         $blockScrolling: "Infinity"
+                         $blockScrolling: "Infinity",
                        }}
+                       className={inputProps.readOnly ? " read-only" : ""}
                        setOptions={{
                          indentedSoftWrap: false, //removes weird spaces for multiline strings when wrapEnabled=true
                          enableBasicAutocompletion: [this.customAceEditorCompleter],
@@ -153,7 +152,7 @@ class ExpressionSuggest extends React.Component {
                          showLineNumbers: false,
                          fontSize: 16,
                          fontFamily: "'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace", //monospace font seems to be mandatory to make ace cursor work well,
-                         readOnly: inputProps.readOnly
+                         readOnly: inputProps.readOnly,
                        }}
                        onFocus={this.setEditorFocus(true)}
                        onBlur={this.setEditorFocus(false)}/>
@@ -182,7 +181,7 @@ function mapState(state, props) {
     typesInformation: typesInformation,
     dataResolved: dataResolved,
     variables: variables,
-    processingType: state.graphReducer.processToDisplay.processingType
+    processingType: state.graphReducer.processToDisplay.processingType,
   }
 }
 
