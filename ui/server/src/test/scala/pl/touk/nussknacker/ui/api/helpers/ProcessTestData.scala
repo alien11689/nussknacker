@@ -92,6 +92,7 @@ object ProcessTestData {
     BaseProcessDetails[DisplayableProcess](
       id = displayable.id,
       name = displayable.id,
+      processId = 1L,
       processVersionId = 1,
       isLatestVersion = true,
       description = None,
@@ -115,6 +116,7 @@ object ProcessTestData {
     BaseProcessDetails[ValidatedDisplayableProcess](
       id = displayable.id,
       name = displayable.id,
+      processId = 1L,
       processVersionId = 1,
       isLatestVersion = true,
       description = None,
