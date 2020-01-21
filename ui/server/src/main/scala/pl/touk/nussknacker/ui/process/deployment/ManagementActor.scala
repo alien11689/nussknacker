@@ -18,7 +18,7 @@ import pl.touk.nussknacker.ui.EspError
 import pl.touk.nussknacker.ui.db.entity.{ProcessActionEntityData, ProcessVersionEntityData}
 import pl.touk.nussknacker.ui.listener.ProcessChangeListener
 import pl.touk.nussknacker.ui.process.repository.ProcessRepository.ProcessNotFoundError
-import pl.touk.nussknacker.ui.process.repository.{DeployedProcessRepository, FetchingProcessRepository}
+import pl.touk.nussknacker.ui.process.repository.{ProcessActionRepository, FetchingProcessRepository}
 import pl.touk.nussknacker.ui.process.subprocess.SubprocessResolver
 import pl.touk.nussknacker.ui.security.api.{LoggedUser, NussknackerInternalUser}
 import pl.touk.nussknacker.ui.util.{CatsSyntax, FailurePropagatingActor}
@@ -27,21 +27,19 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 object ManagementActor {
-  def props(environment: String,
-            managers: Map[ProcessingType, ProcessManager],
+  def props(managers: Map[ProcessingType, ProcessManager],
             processRepository: FetchingProcessRepository[Future],
-            deployedProcessRepository: DeployedProcessRepository,
+            deployedProcessRepository: ProcessActionRepository,
             subprocessResolver: SubprocessResolver,
             processChangeListener: ProcessChangeListener)
            (implicit context: ActorRefFactory): Props = {
-    Props(classOf[ManagementActor], environment, managers, processRepository, deployedProcessRepository, subprocessResolver, processChangeListener)
+    Props(classOf[ManagementActor], managers, processRepository, deployedProcessRepository, subprocessResolver, processChangeListener)
   }
 }
 
-class ManagementActor(environment: String,
-                      managers: Map[ProcessingType, ProcessManager],
+class ManagementActor(managers: Map[ProcessingType, ProcessManager],
                       processRepository: FetchingProcessRepository[Future],
-                      deployedProcessRepository: DeployedProcessRepository,
+                      deployedProcessRepository: ProcessActionRepository,
                       subprocessResolver: SubprocessResolver,
                       processChangeListener: ProcessChangeListener) extends FailurePropagatingActor with LazyLogging {
 
@@ -134,7 +132,7 @@ class ManagementActor(environment: String,
       case Some(state) if state.status.isFinished =>
         findDeployedVersion(idWithName).flatMap {
           case Some(version) =>
-            deployedProcessRepository.markProcessAsCancelled(idWithName.id, version, environment, Some("Process finished")).map(_ => ())
+            deployedProcessRepository.markProcessAsCancelled(idWithName.id, version, Some("Process finished")).map(_ => ())
           case _ => Future.successful(())
         }
       case _ => Future.successful(())
@@ -170,7 +168,7 @@ class ManagementActor(environment: String,
         case Some(processVersionId) => Future.successful(processVersionId)
         case None => Future.failed(ProcessNotFoundError(processId.name.value.toString))
       }
-      result <- deployedProcessRepository.markProcessAsCancelled(processId.id, version, environment, comment)
+      result <- deployedProcessRepository.markProcessAsCancelled(processId.id, version, comment)
     } yield result
   }
 
@@ -191,8 +189,10 @@ class ManagementActor(environment: String,
     } yield result
   }
 
-  private def deployAndSaveProcess(processingType: ProcessingType, latestVersion: ProcessVersionEntityData,
-                                   savepointPath: Option[String], comment: Option[String])(implicit user: LoggedUser): Future[ProcessActionEntityData] = {
+  private def deployAndSaveProcess(processingType: ProcessingType,
+                                   latestVersion: ProcessVersionEntityData,
+                                   savepointPath: Option[String],
+                                   comment: Option[String])(implicit user: LoggedUser): Future[ProcessActionEntityData] = {
     val resolvedDeploymentData = resolveDeploymentData(latestVersion.deploymentData)
     val processManagerValue = managers(processingType)
 
@@ -201,8 +201,9 @@ class ManagementActor(environment: String,
       maybeProcessName <- processRepository.fetchProcessName(ProcessId(latestVersion.processId))
       processName = maybeProcessName.getOrElse(throw new IllegalArgumentException(s"Unknown process Id ${latestVersion.processId}"))
       _ <- processManagerValue.deploy(latestVersion.toProcessVersion(processName), deploymentResolved, savepointPath)
-      deployedActionData <- deployedProcessRepository.markProcessAsDeployed(ProcessId(latestVersion.processId), latestVersion.id,
-        processingType, environment, comment)
+      deployedActionData <- deployedProcessRepository.markProcessAsDeployed(
+        ProcessId(latestVersion.processId), latestVersion.id, processingType, comment
+      )
     } yield deployedActionData
   }
 
@@ -269,7 +270,6 @@ object DeploymentActionType {
 case object DeploymentStatus
 
 case class DeploymentStatusResponse(deploymentInfo: Map[ProcessName, DeployInfo])
-
 
 class ProcessIsBeingDeployed(deployments: Map[ProcessName, DeployInfo]) extends
   Exception(s"Cannot deploy/test as following deployments are in progress: ${
