@@ -40,7 +40,7 @@ class ProcessActionRepository(val dbConfig: DbConfig, buildInfos: Map[Processing
         processId = processId.value,
         processVersionId = processVersion,
         user = user.username,
-        createdAt = Timestamp.valueOf(LocalDateTime.now()),
+        performedAt = Timestamp.valueOf(LocalDateTime.now()),
         action = action,
         commentId = commentId,
         buildInfo = buildInfo

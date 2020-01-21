@@ -37,7 +37,7 @@ class ManagementResourcesSpec extends FunSuite with ScalatestRouteTest with Fail
     BeMatcher(equal(
         Option(ProcessAction(versionId, fixedTime, user().username, ActionType.Deploy, Option.empty, Option.empty, buildInfo))
       ).matcher[Option[ProcessAction]]
-    ).compose[Option[ProcessAction]](_.map(_.copy(createdAt = fixedTime)))
+    ).compose[Option[ProcessAction]](_.map(_.copy(performedAt = fixedTime)))
 
   test("process deployment should be visible in process history") {
     saveProcessAndAssertSuccess(SampleProcess.process.id, SampleProcess.process)
@@ -69,7 +69,7 @@ class ManagementResourcesSpec extends FunSuite with ScalatestRouteTest with Fail
           Get(s"/processes/${SampleProcess.process.id}/deployments") ~> withAllPermissions(processesRoute) ~> check {
             val deploymentHistory = responseAs[List[ProcessAction]]
             val curTime = LocalDateTime.now()
-            deploymentHistory.map(_.copy(createdAt = curTime)) shouldBe List(
+            deploymentHistory.map(_.copy(performedAt = curTime)) shouldBe List(
               ProcessAction(2, curTime, user().username, ActionType.Cancel, Some(secondCommentId), Some("cancelComment"), Map()),
               ProcessAction(2, curTime, user().username, ActionType.Deploy, Some(firstCommentId), Some("deployComment"), TestFactory.buildInfo)
             )

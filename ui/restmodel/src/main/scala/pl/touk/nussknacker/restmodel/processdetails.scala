@@ -56,9 +56,9 @@ object processdetails extends JavaTimeEncoders with JavaTimeDecoders {
     implicit def decoder[T](implicit shape: Decoder[T]): Decoder[BaseProcessDetails[T]] = deriveDecoder
   }
 
-  case class BaseProcessDetails[ProcessShape](id: String, //TODO: replace it by Long / ProcessId
+  case class BaseProcessDetails[ProcessShape](id: String, //It temporary holds the name of process, because it's used everywhere in GUI - TODO: change type to ProcessId and explicitly use processName
                                               name: String,
-                                              processId: Long, //TODO: Remove it when we will support Long / ProcessId
+                                              processId: Long, //It's process pk and it's used at migration on initialization app and some tests - TODO: Remove it when we will support ProcessId
                                               processVersionId: Long,
                                               isLatestVersion: Boolean,
                                               description: Option[String],
@@ -106,14 +106,14 @@ object processdetails extends JavaTimeEncoders with JavaTimeDecoders {
                                        user: String,
                                        modelVersion: Option[Int])
 
-  @JsonCodec case class ProcessAction(//processId: Long, //TODO: support it when will support processId as Long / ProcessId
-                                      processVersionId: Long,
-                                      createdAt: LocalDateTime,
-                                      user: String,
-                                      action: ActionType,
-                                      commentId: Option[Long],
-                                      comment: Option[String],
-                                      buildInfo: Map[String, String]) {
+  @JsonCodec case class ProcessAction( //processId: Long, //TODO: support it when will support processId as Long / ProcessId
+                                       processVersionId: Long,
+                                       performedAt: LocalDateTime,
+                                       user: String,
+                                       action: ActionType,
+                                       commentId: Option[Long],
+                                       comment: Option[String],
+                                       buildInfo: Map[String, String]) {
     def isDeployed: Boolean = action.equals(ActionType.Deploy)
     def isCanceled: Boolean = action.equals(ActionType.Cancel)
   }
