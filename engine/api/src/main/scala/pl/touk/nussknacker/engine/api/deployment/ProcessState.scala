@@ -13,7 +13,9 @@ import scala.util.{Failure, Success, Try}
 trait ProcessStateDefinitionManager {
   def statusActions(stateStatus: StateStatus): List[ProcessActionType]
   def statusTooltip(stateStatus: StateStatus): Option[String]
+  def statusMessage(stateStatus: StateStatus): Option[String]
   def statusIcon(stateStatus: StateStatus): Option[URI]
+  def statusName(stateStatus: StateStatus): String
   def mapActionToStatus(stateAction: Option[ProcessActionType]): StateStatus
 }
 
@@ -21,26 +23,28 @@ object ProcessState {
   implicit val uriEncoder: Encoder[URI] = Encoder.encodeString.contramap(_.toString)
   implicit val uriDecoder: Decoder[URI] = Decoder.decodeString.map(URI.create)
 
-  def apply(deploymentId: String, status: StateStatus, version: Option[ProcessVersion], allowedActions: List[ProcessActionType]): ProcessState =
-    ProcessState(DeploymentId(deploymentId), status, version, allowedActions)
+  def apply(deploymentId: String, status: StateStatus, version: Option[ProcessVersion], definitionManager: ProcessStateDefinitionManager): ProcessState =
+    ProcessState(DeploymentId(deploymentId), status, version, definitionManager, Option.empty, Option.empty, Option.empty)
 
   def apply(deploymentId: DeploymentId,
             status: StateStatus,
-            version: Option[ProcessVersion],
+            processVersionId: Option[ProcessVersion],
             definitionManager: ProcessStateDefinitionManager,
             startTime: Option[Long],
             attributes: Option[Json],
-            errorMessage: Option[String]): ProcessState =
+            errors: Option[String]): ProcessState =
     ProcessState(
       deploymentId,
       status,
-      version,
+      definitionManager.statusName(status),
+      processVersionId,
       definitionManager.statusActions(status),
       definitionManager.statusIcon(status),
       definitionManager.statusTooltip(status),
+      definitionManager.statusMessage(status),
       startTime,
       attributes,
-      errorMessage
+      errors
     )
 
   @JsonCodec case class StateStatusCodec(clazz: String, value: String)
@@ -48,13 +52,15 @@ object ProcessState {
 
 @JsonCodec case class ProcessState(deploymentId: DeploymentId,
                                    status: StateStatus,
-                                   processVersionId: Option[ProcessVersion] = Option.empty,
-                                   allowedActions: List[ProcessActionType] = List.empty,
-                                   icon: Option[URI] = Option.empty,
-                                   tooltip: Option[String] = Option.empty,
-                                   startTime: Option[Long] = Option.empty,
-                                   attributes: Option[Json] = Option.empty,
-                                   errorMessage: Option[String] = Option.empty) {
+                                   name: String,
+                                   processVersionId: Option[ProcessVersion],
+                                   allowedActions: List[ProcessActionType],
+                                   icon: Option[URI],
+                                   tooltip: Option[String],
+                                   message: Option[String],
+                                   startTime: Option[Long],
+                                   attributes: Option[Json],
+                                   errors: Option[String]) {
   def isDeployed: Boolean = status.isRunning || status.isDuringDeploy
 }
 

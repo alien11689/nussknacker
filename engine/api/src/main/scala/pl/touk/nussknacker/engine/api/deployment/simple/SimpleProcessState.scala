@@ -8,19 +8,17 @@ import pl.touk.nussknacker.engine.api.deployment.{DeploymentId, ProcessState}
 object SimpleProcessState {
   def apply(deploymentId: DeploymentId,
             status: StateStatus,
-            version: Option[ProcessVersion] = Option.empty,
+            processVersionId: Option[ProcessVersion] = Option.empty,
             startTime: Option[Long] = Option.empty,
             attributes: Option[Json] = Option.empty,
             errorMessage: Option[String] = Option.empty): ProcessState =
     ProcessState(
       deploymentId = deploymentId,
       status = status,
-      processVersionId = version,
-      allowedActions = SimpleProcessStateDefinitionManager.statusActions(status),
-      icon = SimpleProcessStateDefinitionManager.statusIcon(status),
-      tooltip = SimpleProcessStateDefinitionManager.statusTooltip(status),
+      processVersionId = processVersionId,
+      definitionManager = SimpleProcessStateDefinitionManager,
       startTime = startTime,
       attributes = attributes,
-      errorMessage = errorMessage
+      errors = errorMessage
     )
 }
