@@ -16,30 +16,30 @@ import pl.touk.nussknacker.restmodel.processdetails.ProcessDeploymentAction
                                     allowedActions: List[ProcessActionType],
                                     icon: Option[URI],
                                     tooltip: Option[String],
-                                    message: Option[String],
+                                    description: Option[String],
                                     startTime: Option[Long],
                                     attributes: Option[Json],
-                                    errors: Option[String])
+                                    errors: List[String])
 
 object ProcessStatus extends StateStatusFollowingDeployAction {
   //It's necessary to encode / decode StateStatus
   import ProcessState._
 
-  def simple(status: StateStatus, deploymentId: Option[String], errors: Option[String]): ProcessStatus =
+  def simple(status: StateStatus, deploymentId: Option[String], errors: List[String]): ProcessStatus =
     ProcessStatus(status, SimpleProcessStateDefinitionManager, deploymentId, Option.empty, Option.empty, errors)
 
   def simple(status: StateStatus): ProcessStatus =
     ProcessStatus(status, SimpleProcessStateDefinitionManager)
 
   def apply(status: StateStatus, processStateDefinitionManager: ProcessStateDefinitionManager): ProcessStatus =
-    ProcessStatus(status, processStateDefinitionManager, Option.empty, Option.empty, Option.empty, Option.empty)
+    ProcessStatus(status, processStateDefinitionManager, Option.empty, Option.empty, Option.empty, List.empty)
 
   def apply(status: StateStatus,
             processStateDefinitionManager: ProcessStateDefinitionManager,
             deploymentId: Option[String],
             startTime: Option[Long],
             attributes: Option[Json],
-            errors: Option[String]): ProcessStatus =
+            errors: List[String]): ProcessStatus =
     ProcessStatus(
       status,
       processStateDefinitionManager.statusName(status),
@@ -47,7 +47,7 @@ object ProcessStatus extends StateStatusFollowingDeployAction {
       allowedActions = processStateDefinitionManager.statusActions(status),
       icon = processStateDefinitionManager.statusIcon(status),
       tooltip = processStateDefinitionManager.statusTooltip(status),
-      message = processStateDefinitionManager.statusMessage(status),
+      description = processStateDefinitionManager.statusDescription(status),
       startTime,
       attributes,
       errors
@@ -63,20 +63,20 @@ object ProcessStatus extends StateStatusFollowingDeployAction {
       allowedActions = processState.allowedActions,
       icon = processState.icon,
       tooltip = processState.tooltip,
-      message = processState.message,
+      description = processState.description,
       startTime = processState.startTime,
       attributes = processState.attributes,
-      errors = List(mismatchMessage, processState.errors).flatten.reduceOption(_ + ", " + _)
+      errors = processState.errors ++ mismatchMessage.map(error => List(error)).getOrElse(List.empty)
     )
   }
 
   //TODO: Move this logic to another place.. This should be moved together with ManagementActor.handleObsoleteStatus
-  private def deployedVersionMismatchMessage(processState: ProcessState, lastAction: Option[ProcessDeploymentAction]) = {
+  private def deployedVersionMismatchMessage(processState: ProcessState, lastAction: Option[ProcessDeploymentAction]): Option[String] = {
     (processState.processVersionId, lastAction) match {
       case (Some(stateVersion), Some(action)) if stateVersion.versionId == action.processVersionId => None
-      case (Some(stateVersion), Some(action)) if action.isDeployed && !isFollowingDeployAction(processState.status) => Some(s"Process deployed in version ${stateVersion.versionId} (by ${stateVersion.user}), but currently not working")
-      case (Some(stateVersion), Some(action)) if action.isDeployed && stateVersion.versionId != action.processVersionId => Some(s"Process deployed in version ${stateVersion.versionId} (by ${stateVersion.user}), expected version ${action.processVersionId}")
-      case (Some(stateVersion), None) if processState.isDeployed => Some(s"Process deployed in version ${stateVersion.versionId} (by ${stateVersion.user}), should not be deployed")
+      case (Some(stateVersion), Some(action)) if action.isDeployed && !isFollowingDeployAction(processState.status) => Some(s"Process deployed in version ${stateVersion.versionId} (by ${stateVersion.user}), but currently not working.")
+      case (Some(stateVersion), Some(action)) if action.isDeployed && stateVersion.versionId != action.processVersionId => Some(s"Process deployed in version ${stateVersion.versionId} (by ${stateVersion.user}), expected version ${action.processVersionId}.")
+      case (Some(stateVersion), None) if processState.isDeployed => Some(s"Process deployed in version ${stateVersion.versionId} (by ${stateVersion.user}), should not be deployed.")
       case (None, None) => None
       case _ => None //We verify only deployed process
     }

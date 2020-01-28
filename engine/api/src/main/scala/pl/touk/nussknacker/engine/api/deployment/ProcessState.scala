@@ -13,7 +13,7 @@ import scala.util.{Failure, Success, Try}
 trait ProcessStateDefinitionManager {
   def statusActions(stateStatus: StateStatus): List[ProcessActionType]
   def statusTooltip(stateStatus: StateStatus): Option[String]
-  def statusMessage(stateStatus: StateStatus): Option[String]
+  def statusDescription(stateStatus: StateStatus): Option[String]
   def statusIcon(stateStatus: StateStatus): Option[URI]
   def statusName(stateStatus: StateStatus): String
   def mapActionToStatus(stateAction: Option[ProcessActionType]): StateStatus
@@ -24,7 +24,7 @@ object ProcessState {
   implicit val uriDecoder: Decoder[URI] = Decoder.decodeString.map(URI.create)
 
   def apply(deploymentId: String, status: StateStatus, version: Option[ProcessVersion], definitionManager: ProcessStateDefinitionManager): ProcessState =
-    ProcessState(DeploymentId(deploymentId), status, version, definitionManager, Option.empty, Option.empty, Option.empty)
+    ProcessState(DeploymentId(deploymentId), status, version, definitionManager, Option.empty, Option.empty, List.empty)
 
   def apply(deploymentId: DeploymentId,
             status: StateStatus,
@@ -32,7 +32,7 @@ object ProcessState {
             definitionManager: ProcessStateDefinitionManager,
             startTime: Option[Long],
             attributes: Option[Json],
-            errors: Option[String]): ProcessState =
+            errors: List[String]): ProcessState =
     ProcessState(
       deploymentId,
       status,
@@ -41,7 +41,7 @@ object ProcessState {
       definitionManager.statusActions(status),
       definitionManager.statusIcon(status),
       definitionManager.statusTooltip(status),
-      definitionManager.statusMessage(status),
+      definitionManager.statusDescription(status),
       startTime,
       attributes,
       errors
@@ -57,10 +57,10 @@ object ProcessState {
                                    allowedActions: List[ProcessActionType],
                                    icon: Option[URI],
                                    tooltip: Option[String],
-                                   message: Option[String],
+                                   description: Option[String],
                                    startTime: Option[Long],
                                    attributes: Option[Json],
-                                   errors: Option[String]) {
+                                   errors: List[String]) {
   def isDeployed: Boolean = status.isRunning || status.isDuringDeploy
 }
 
